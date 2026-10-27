@@ -123,8 +123,16 @@ function renderDashboardContent(data: BudgetData): string {
     )
     .join("");
 
+  const transactionsBlock =
+    data.transactions.length === 0
+      ? `<p class="tx-empty">No purchases yet</p>`
+      : `<ul class="tx-list">${rows}</ul>`;
+
   return `
-    <h1>Grocery Budget</h1>
+    <header class="dashboard-header">
+      <h1>Grocery Budget</h1>
+      <p class="updated">Updated ${escapeHtml(formatUpdated(data.updatedAt))}</p>
+    </header>
     <p class="subtitle">${escapeHtml(formatMonth(data.month))} · since ${escapeHtml(data.periodStart)}</p>
     <div class="card">
       <div class="stats">
@@ -149,9 +157,8 @@ function renderDashboardContent(data: BudgetData): string {
     </div>
     <div class="card">
       <h2 style="margin:0 0 0.75rem;font-size:1rem;font-weight:600">Transactions</h2>
-      <ul class="tx-list">${rows}</ul>
+      ${transactionsBlock}
     </div>
-    <p class="updated">Updated ${escapeHtml(formatUpdated(data.updatedAt))}</p>
   `;
 }
 
