@@ -110,7 +110,11 @@ function renderDashboardContent(data: BudgetData): string {
   const pct = Math.min(100, (spent / data.monthlyBudget) * 100);
   const over = spent > data.monthlyBudget;
 
-  const rows = data.transactions
+  const rows = [...data.transactions]
+    .sort((a, b) => {
+      const byDate = a.date.localeCompare(b.date);
+      return byDate !== 0 ? byDate : a.time.localeCompare(b.time);
+    })
     .map(
       (t) => `
       <li class="tx-item">
