@@ -17,10 +17,65 @@ interface Transaction {
 interface BudgetData {
   currency: string;
   monthlyBudget: number;
+  dailyBudget?: number;
   month: string;
   periodStart: string;
   updatedAt: string;
   transactions: Transaction[];
+}
+
+type View = "dashboard" | "stats";
+
+let cachedBudgetData: BudgetData | null = null;
+
+function getDailyBudget(data: BudgetData): number {
+  return data.dailyBudget ?? 14;
+}
+
+function parseYmd(ymd: string): Date {
+  const [y, m, d] = ymd.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function formatYmd(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function enumerateDays(startYmd: string, endYmd: string): string[] {
+  const days: string[] = [];
+  let cur = parseYmd(startYmd);
+  const end = parseYmd(endYmd);
+  while (cur <= end) {
+    days.push(formatYmd(cur));
+    cur = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 1);
+  }
+  return days;
+}
+
+function latestTransactionDate(data: BudgetData): string {
+  if (data.transactions.length === 0) return data.periodStart;
+  return data.transactions.reduce(
+    (max, t) => (t.date > max ? t.date : max),
+    data.transactions[0].date,
+  );
+}
+
+function spendingByDate(data: BudgetData): Map<string, number> {
+  const map = new Map<string, number>();
+  for (const t of data.transactions) {
+    map.set(t.date, (map.get(t.date) ?? 0) + t.amount);
+  }
+  return map;
+}
+
+function dailyVarianceText(spent: number, dailyBudget: number, currency: string): string {
+  if (spent > dailyBudget) {
+    return `Over by ${formatMoney(spent - dailyBudget, currency)}`;
+  }
+  return `Under by ${formatMoney(dailyBudget - spent, currency)}`;
 }
 
 async function sha256Hex(text: string): Promise<string> {
@@ -107,12 +162,99 @@ function renderGate(root: HTMLElement, config: AppConfig): void {
     const hash = await sha256Hex(input.value);
     if (hash === config.passwordSha256) {
       sessionStorage.setItem(AUTH_KEY, "1");
-      await renderDashboard(root);
+      await renderApp(root, "dashboard");
     } else {
       errorEl.textContent = "Incorrect password.";
       input.select();
     }
   });
+}
+
+function renderViewTabs(active: View): string {
+  return `
+    <nav class="view-tabs" role="tablist" aria-label="Views">
+      <button type="button" class="view-tab${active === "dashboard" ? " active" : ""}" role="tab" aria-selected="${active === "dashboard"}" data-view="dashboard">Dashboard</button>
+      <button type="button" class="view-tab${active === "stats" ? " active" : ""}" role="tab" aria-selected="${active === "stats"}" data-view="stats">Stats</button>
+    </nav>`;
+}
+
+function renderStatsContent(data: BudgetData): string {
+  const dailyBudget = getDailyBudget(data);
+  const endDate = latestTransactionDate(data);
+  const daysAsc = enumerateDays(data.periodStart, endDate);
+  const daysDesc = [...daysAsc].reverse();
+  const byDate = spendingByDate(data);
+
+  const tableRows = daysDesc
+    .map((date) => {
+      const spent = byDate.get(date) ?? 0;
+      const variance = dailyVarianceText(spent, dailyBudget, data.currency);
+      const varianceClass = spent > dailyBudget ? " variance-over" : " variance-under";
+      return `
+      <tr>
+        <td>${escapeHtml(date)}</td>
+        <td class="num">${formatMoney(spent, data.currency)}</td>
+        <td class="num${varianceClass}">${escapeHtml(variance)}</td>
+      </tr>`;
+    })
+    .join("");
+
+  const daysCovered = daysAsc.length;
+  const allowance = daysCovered * dailyBudget;
+  const periodSpent = daysAsc.reduce((sum, d) => sum + (byDate.get(d) ?? 0), 0);
+  const diff = allowance - periodSpent;
+  const periodSummary =
+    diff >= 0
+      ? `Available ${formatMoney(diff, data.currency)}`
+      : `Overspent by ${formatMoney(-diff, data.currency)}`;
+
+  const monthlySpent = data.transactions.reduce((sum, t) => sum + t.amount, 0);
+
+  return `
+    <header class="dashboard-header">
+      <h1>Grocery Budget</h1>
+      <p class="updated">Updated ${escapeHtml(formatUpdated(data.updatedAt))}</p>
+    </header>
+    ${renderViewTabs("stats")}
+    <p class="subtitle">${escapeHtml(formatMonth(data.month))} · daily cap ${formatMoney(dailyBudget, data.currency)}</p>
+    <div class="card">
+      <div class="summary-grid">
+        <div>
+          <div class="stat-label">Days covered</div>
+          <div class="stat-value stat-value-sm">${daysCovered}</div>
+        </div>
+        <div>
+          <div class="stat-label">Allowance</div>
+          <div class="stat-value stat-value-sm">${formatMoney(allowance, data.currency)}</div>
+        </div>
+        <div>
+          <div class="stat-label">Period spent</div>
+          <div class="stat-value stat-value-sm">${formatMoney(periodSpent, data.currency)}</div>
+        </div>
+        <div>
+          <div class="stat-label">Monthly spent</div>
+          <div class="stat-value stat-value-sm">${formatMoney(monthlySpent, data.currency)}</div>
+        </div>
+      </div>
+      <p class="stats-highlight">${escapeHtml(periodSummary)}</p>
+      <p class="stats-monthly">${formatMoney(monthlySpent, data.currency)} of ${formatMoney(data.monthlyBudget, data.currency)} monthly budget</p>
+    </div>
+    <div class="card">
+      <h2 class="section-title">Daily breakdown</h2>
+      <div class="stats-table-wrap">
+        <table class="stats-table">
+          <thead>
+            <tr>
+              <th scope="col">Date</th>
+              <th scope="col">Spent</th>
+              <th scope="col">vs ${formatMoney(dailyBudget, data.currency)}</th>
+            </tr>
+          </thead>
+          <tbody>${tableRows}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
 }
 
 function renderDashboardContent(data: BudgetData): string {
@@ -170,6 +312,7 @@ function renderDashboardContent(data: BudgetData): string {
       <h1>Grocery Budget</h1>
       <p class="updated">Updated ${escapeHtml(formatUpdated(data.updatedAt))}</p>
     </header>
+    ${renderViewTabs("dashboard")}
     <p class="subtitle">${escapeHtml(formatMonth(data.month))} · since ${escapeHtml(data.periodStart)}</p>
     <div class="card">
       <div class="stats">
@@ -199,9 +342,22 @@ function renderDashboardContent(data: BudgetData): string {
   `;
 }
 
-async function renderDashboard(root: HTMLElement): Promise<void> {
-  const data = await loadJson<BudgetData>("data.json");
-  root.innerHTML = renderDashboardContent(data);
+function attachViewTabHandlers(root: HTMLElement, view: View): void {
+  root.querySelectorAll<HTMLButtonElement>(".view-tab").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const next = btn.dataset.view as View | undefined;
+      if (next && next !== view) void renderApp(root, next);
+    });
+  });
+}
+
+async function renderApp(root: HTMLElement, view: View = "dashboard"): Promise<void> {
+  if (!cachedBudgetData) {
+    cachedBudgetData = await loadJson<BudgetData>("data.json");
+  }
+  const data = cachedBudgetData;
+  root.innerHTML = view === "stats" ? renderStatsContent(data) : renderDashboardContent(data);
+  attachViewTabHandlers(root, view);
 }
 
 async function boot(): Promise<void> {
@@ -211,7 +367,7 @@ async function boot(): Promise<void> {
   try {
     const config = await loadJson<AppConfig>("config.json");
     if (sessionStorage.getItem(AUTH_KEY) === "1") {
-      await renderDashboard(root);
+      await renderApp(root, "dashboard");
     } else {
       renderGate(root, config);
     }
