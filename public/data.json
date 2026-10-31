@@ -3,7 +3,7 @@
   "monthlyBudget": 1200,
   "month": "2026-11",
   "periodStart": "2026-10-27",
-  "updatedAt": "2026-10-31T13:01:00+04:00",
+  "updatedAt": "2026-10-31T15:57:00+04:00",
   "transactions": [
     {
       "date": "2026-10-27",
@@ -52,6 +52,12 @@
       "time": "15:57",
       "shop": "Food Day",
       "amount": 6.0
+    },
+    {
+      "date": "2026-10-31",
+      "time": "15:35",
+      "shop": "Food Day",
+      "amount": 4.0
     }
   ]
 }
