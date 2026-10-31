@@ -57,6 +57,17 @@ function formatMonth(ym: string): string {
   );
 }
 
+function formatTxDayHeader(dateStr: string): string {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  if (!y || !m || !d) return dateStr;
+  return new Intl.DateTimeFormat("en-GB", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(y, m - 1, d));
+}
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
@@ -110,27 +121,49 @@ function renderDashboardContent(data: BudgetData): string {
   const pct = Math.min(100, (spent / data.monthlyBudget) * 100);
   const over = spent > data.monthlyBudget;
 
-  const rows = [...data.transactions]
-    .sort((a, b) => {
-      const byDate = b.date.localeCompare(a.date);
-      return byDate !== 0 ? byDate : b.time.localeCompare(a.time);
-    })
-    .map(
-      (t) => `
+  const sorted = [...data.transactions].sort((a, b) => {
+    const byDate = b.date.localeCompare(a.date);
+    return byDate !== 0 ? byDate : b.time.localeCompare(a.time);
+  });
+
+  const groups: { date: string; items: Transaction[] }[] = [];
+  for (const t of sorted) {
+    const last = groups[groups.length - 1];
+    if (last && last.date === t.date) {
+      last.items.push(t);
+    } else {
+      groups.push({ date: t.date, items: [t] });
+    }
+  }
+
+  const renderTxItem = (t: Transaction) => `
       <li class="tx-item">
         <div>
           <div class="tx-shop">${escapeHtml(t.shop)}</div>
           <div class="tx-meta">${escapeHtml(t.date)} · ${escapeHtml(t.time)}</div>
         </div>
         <div class="tx-amount">${formatMoney(t.amount, data.currency)}</div>
-      </li>`,
-    )
+      </li>`;
+
+  const groupsHtml = groups
+    .map((g) => {
+      const dayTotal = g.items.reduce((sum, t) => sum + t.amount, 0);
+      const items = g.items.map(renderTxItem).join("");
+      return `
+    <div class="tx-group">
+      <div class="tx-day-header">
+        <span>${escapeHtml(formatTxDayHeader(g.date))}</span>
+        <span class="tx-day-total">${formatMoney(dayTotal, data.currency)}</span>
+      </div>
+      <ul class="tx-list">${items}</ul>
+    </div>`;
+    })
     .join("");
 
   const transactionsBlock =
     data.transactions.length === 0
       ? `<p class="tx-empty">No purchases yet</p>`
-      : `<ul class="tx-list">${rows}</ul>`;
+      : `<div class="tx-groups">${groupsHtml}</div>`;
 
   return `
     <header class="dashboard-header">
