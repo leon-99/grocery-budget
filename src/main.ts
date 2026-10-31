@@ -112,8 +112,8 @@ function renderDashboardContent(data: BudgetData): string {
 
   const rows = [...data.transactions]
     .sort((a, b) => {
-      const byDate = a.date.localeCompare(b.date);
-      return byDate !== 0 ? byDate : a.time.localeCompare(b.time);
+      const byDate = b.date.localeCompare(a.date);
+      return byDate !== 0 ? byDate : b.time.localeCompare(a.time);
     })
     .map(
       (t) => `
