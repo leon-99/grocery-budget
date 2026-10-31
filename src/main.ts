@@ -29,7 +29,25 @@ type View = "dashboard" | "stats";
 let cachedBudgetData: BudgetData | null = null;
 
 function getDailyBudget(data: BudgetData): number {
-  return data.dailyBudget ?? 14;
+  return data.dailyBudget ?? 40;
+}
+
+function todayYmdInDubai(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Dubai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+function maxYmd(a: string, b: string): string {
+  return a >= b ? a : b;
+}
+
+/** Stats-only: inclusive end date through later of Dubai today or latest transaction. */
+function statsPeriodEndDate(data: BudgetData): string {
+  return maxYmd(todayYmdInDubai(), latestTransactionDate(data));
 }
 
 function parseYmd(ymd: string): Date {
@@ -180,7 +198,7 @@ function renderViewTabs(active: View): string {
 
 function renderStatsContent(data: BudgetData): string {
   const dailyBudget = getDailyBudget(data);
-  const endDate = latestTransactionDate(data);
+  const endDate = statsPeriodEndDate(data);
   const daysAsc = enumerateDays(data.periodStart, endDate);
   const daysDesc = [...daysAsc].reverse();
   const byDate = spendingByDate(data);
@@ -200,15 +218,22 @@ function renderStatsContent(data: BudgetData): string {
     .join("");
 
   const daysCovered = daysAsc.length;
-  const allowance = daysCovered * dailyBudget;
-  const periodSpent = daysAsc.reduce((sum, d) => sum + (byDate.get(d) ?? 0), 0);
-  const diff = allowance - periodSpent;
-  const periodSummary =
-    diff >= 0
-      ? `Available ${formatMoney(diff, data.currency)}`
-      : `Overspent by ${formatMoney(-diff, data.currency)}`;
+  const totalAllowed = daysCovered * dailyBudget;
+  const actualSpent = daysAsc.reduce((sum, d) => sum + (byDate.get(d) ?? 0), 0);
+  const extraAvailable = totalAllowed - actualSpent;
+  const extraLine =
+    extraAvailable >= 0
+      ? `<div class="stats-summary-row">
+          <span class="stats-summary-label">Extra available</span>
+          <span class="stats-summary-value">${formatMoney(extraAvailable, data.currency)}</span>
+        </div>`
+      : `<div class="stats-summary-row stats-summary-row-over">
+          <span class="stats-summary-label">Overspent by</span>
+          <span class="stats-summary-value">${formatMoney(-extraAvailable, data.currency)}</span>
+        </div>`;
 
   const monthlySpent = data.transactions.reduce((sum, t) => sum + t.amount, 0);
+  const periodStartLabel = formatTxDayHeader(data.periodStart);
 
   return `
     <header class="dashboard-header">
@@ -216,27 +241,23 @@ function renderStatsContent(data: BudgetData): string {
       <p class="updated">Updated ${escapeHtml(formatUpdated(data.updatedAt))}</p>
     </header>
     ${renderViewTabs("stats")}
-    <p class="subtitle">${escapeHtml(formatMonth(data.month))} · daily cap ${formatMoney(dailyBudget, data.currency)}</p>
+    <p class="subtitle">Period from ${escapeHtml(periodStartLabel)} (${escapeHtml(data.periodStart)}) · ${formatMoney(dailyBudget, data.currency)}/day</p>
     <div class="card">
-      <div class="summary-grid">
-        <div>
-          <div class="stat-label">Days covered</div>
-          <div class="stat-value stat-value-sm">${daysCovered}</div>
+      <div class="stats-summary">
+        <div class="stats-summary-row">
+          <span class="stats-summary-label">Days covered</span>
+          <span class="stats-summary-value">${daysCovered}</span>
         </div>
-        <div>
-          <div class="stat-label">Allowance</div>
-          <div class="stat-value stat-value-sm">${formatMoney(allowance, data.currency)}</div>
+        <div class="stats-summary-row">
+          <span class="stats-summary-label">Total allowed</span>
+          <span class="stats-summary-value">${formatMoney(totalAllowed, data.currency)}</span>
         </div>
-        <div>
-          <div class="stat-label">Period spent</div>
-          <div class="stat-value stat-value-sm">${formatMoney(periodSpent, data.currency)}</div>
+        <div class="stats-summary-row">
+          <span class="stats-summary-label">Actual spent</span>
+          <span class="stats-summary-value">${formatMoney(actualSpent, data.currency)}</span>
         </div>
-        <div>
-          <div class="stat-label">Monthly spent</div>
-          <div class="stat-value stat-value-sm">${formatMoney(monthlySpent, data.currency)}</div>
-        </div>
+        ${extraLine}
       </div>
-      <p class="stats-highlight">${escapeHtml(periodSummary)}</p>
       <p class="stats-monthly">${formatMoney(monthlySpent, data.currency)} of ${formatMoney(data.monthlyBudget, data.currency)} monthly budget</p>
     </div>
     <div class="card">
