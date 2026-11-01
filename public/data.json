@@ -3,7 +3,7 @@
   "monthlyBudget": 1200,
   "month": "2026-11",
   "periodStart": "2026-10-27",
-  "updatedAt": "2026-11-01T04:56:00+04:00",
+  "updatedAt": "2026-11-01T09:36:00+04:00",
   "transactions": [
     {
       "date": "2026-10-27",
@@ -58,12 +58,6 @@
       "time": "21:00",
       "shop": "Cash groceries",
       "amount": 19.0
-    },
-    {
-      "date": "2026-11-01",
-      "time": "00:44",
-      "shop": "Families Mart",
-      "amount": 6.0
     }
   ]
 }
