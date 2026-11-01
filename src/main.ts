@@ -223,7 +223,7 @@ function renderStatsContent(data: BudgetData): string {
   const extraAvailable = totalAllowed - actualSpent;
   const extraLine =
     extraAvailable >= 0
-      ? `<div class="stats-summary-row">
+      ? `<div class="stats-summary-row stats-summary-row-under">
           <span class="stats-summary-label">Extra available</span>
           <span class="stats-summary-value">${formatMoney(extraAvailable, data.currency)}</span>
         </div>`
@@ -233,6 +233,12 @@ function renderStatsContent(data: BudgetData): string {
         </div>`;
 
   const monthlySpent = data.transactions.reduce((sum, t) => sum + t.amount, 0);
+  const monthlyClass =
+    monthlySpent > data.monthlyBudget
+      ? " stats-monthly-over"
+      : monthlySpent < data.monthlyBudget
+        ? " stats-monthly-under"
+        : "";
   const periodStartLabel = formatTxDayHeader(data.periodStart);
 
   return `
@@ -258,7 +264,7 @@ function renderStatsContent(data: BudgetData): string {
         </div>
         ${extraLine}
       </div>
-      <p class="stats-monthly">${formatMoney(monthlySpent, data.currency)} of ${formatMoney(data.monthlyBudget, data.currency)} monthly budget</p>
+      <p class="stats-monthly${monthlyClass}">${formatMoney(monthlySpent, data.currency)} of ${formatMoney(data.monthlyBudget, data.currency)} monthly budget</p>
     </div>
     <div class="card">
       <h2 class="section-title">Daily breakdown</h2>

@@ -6,6 +6,7 @@
   --accent: #0d9488;
   --accent-dark: #0f766e;
   --danger: #dc2626;
+  --stats-success: #16a34a;
   --border: #99f6e4;
   --shadow: 0 4px 24px rgba(15, 118, 110, 0.12);
   --radius: 16px;
@@ -328,10 +329,25 @@ button:active {
   color: var(--danger);
 }
 
+.stats-summary-row-under .stats-summary-label,
+.stats-summary-row-under .stats-summary-value {
+  color: var(--stats-success);
+}
+
 .stats-monthly {
   margin: 0;
   font-size: 0.875rem;
   color: var(--text-muted);
+}
+
+.stats-monthly-under {
+  color: var(--stats-success);
+  font-weight: 600;
+}
+
+.stats-monthly-over {
+  color: var(--danger);
+  font-weight: 600;
 }
 
 .stats-table-wrap {
@@ -383,5 +399,6 @@ button:active {
 }
 
 .variance-under {
-  color: var(--accent-dark);
+  color: var(--stats-success);
+  font-weight: 600;
 }
