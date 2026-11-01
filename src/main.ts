@@ -141,6 +141,16 @@ function formatTxDayHeader(dateStr: string): string {
   }).format(new Date(y, m - 1, d));
 }
 
+function formatTxGroupDayTitle(dateStr: string): string {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  if (!y || !m || !d) return dateStr;
+  return new Intl.DateTimeFormat("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "short",
+  }).format(new Date(y, m - 1, d));
+}
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
@@ -307,9 +317,9 @@ function renderDashboardContent(data: BudgetData): string {
 
   const renderTxItem = (t: Transaction) => `
       <li class="tx-item">
-        <div>
-          <div class="tx-shop">${escapeHtml(t.shop)}</div>
-          <div class="tx-meta">${escapeHtml(t.date)} · ${escapeHtml(t.time)}</div>
+        <div class="tx-item-main">
+          <span class="tx-time">${escapeHtml(t.time)}</span>
+          <span class="tx-shop">${escapeHtml(t.shop)}</span>
         </div>
         <div class="tx-amount">${formatMoney(t.amount, data.currency)}</div>
       </li>`;
@@ -317,15 +327,20 @@ function renderDashboardContent(data: BudgetData): string {
   const groupsHtml = groups
     .map((g) => {
       const dayTotal = g.items.reduce((sum, t) => sum + t.amount, 0);
+      const count = g.items.length;
+      const countLabel = count === 1 ? "1 item" : `${count} items`;
       const items = g.items.map(renderTxItem).join("");
       return `
-    <div class="tx-group">
-      <div class="tx-day-header">
-        <span>${escapeHtml(formatTxDayHeader(g.date))}</span>
-        <span class="tx-day-total">${formatMoney(dayTotal, data.currency)}</span>
-      </div>
+    <section class="tx-group" aria-label="${escapeHtml(formatTxGroupDayTitle(g.date))}">
+      <header class="tx-group-head">
+        <h3 class="tx-group-title">${escapeHtml(formatTxGroupDayTitle(g.date))}</h3>
+        <div class="tx-group-meta">
+          <span class="tx-group-count">${countLabel}</span>
+          <span class="tx-group-total">Day total ${formatMoney(dayTotal, data.currency)}</span>
+        </div>
+      </header>
       <ul class="tx-list">${items}</ul>
-    </div>`;
+    </section>`;
     })
     .join("");
 
