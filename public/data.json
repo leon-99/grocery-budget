@@ -3,7 +3,7 @@
   "monthlyBudget": 1200,
   "month": "2026-11",
   "periodStart": "2026-10-27",
-  "updatedAt": "2026-11-04T09:05:40+04:00",
+  "updatedAt": "2026-11-04T11:58:00+04:00",
   "transactions": [
     {
       "date": "2026-10-27",
@@ -106,6 +106,18 @@
       "time": "08:40",
       "shop": "Prime Towers Supermarket",
       "amount": 3.0
+    },
+    {
+      "date": "2026-11-04",
+      "time": "11:30",
+      "shop": "Almond Ladies Tailoring",
+      "amount": 33.0
+    },
+    {
+      "date": "2026-11-04",
+      "time": "11:50",
+      "shop": "Bahar Al Madina Supermarket",
+      "amount": 53.25
     }
   ]
 }
