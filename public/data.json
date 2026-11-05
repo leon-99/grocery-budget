@@ -3,7 +3,7 @@
   "monthlyBudget": 1200,
   "month": "2026-11",
   "periodStart": "2026-10-27",
-  "updatedAt": "2026-11-04T11:58:00+04:00",
+  "updatedAt": "2026-11-05T08:57:00+04:00",
   "transactions": [
     {
       "date": "2026-10-27",
@@ -118,6 +118,12 @@
       "time": "11:50",
       "shop": "Bahar Al Madina Supermarket",
       "amount": 53.25
+    },
+    {
+      "date": "2026-11-05",
+      "time": "08:49",
+      "shop": "Prime Towers Supermarket",
+      "amount": 3.0
     }
   ]
 }
