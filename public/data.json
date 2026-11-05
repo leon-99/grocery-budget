@@ -3,7 +3,7 @@
   "monthlyBudget": 1200,
   "month": "2026-11",
   "periodStart": "2026-10-27",
-  "updatedAt": "2026-11-05T08:57:00+04:00",
+  "updatedAt": "2026-11-05T17:58:00+04:00",
   "transactions": [
     {
       "date": "2026-10-27",
@@ -124,6 +124,12 @@
       "time": "08:49",
       "shop": "Prime Towers Supermarket",
       "amount": 3.0
+    },
+    {
+      "date": "2026-11-05",
+      "time": "17:10",
+      "shop": "Food Day",
+      "amount": 19.5
     }
   ]
 }
