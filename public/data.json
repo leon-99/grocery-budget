@@ -3,7 +3,7 @@
   "monthlyBudget": 1200,
   "month": "2026-11",
   "periodStart": "2026-10-27",
-  "updatedAt": "2026-11-06T14:00:58+04:00",
+  "updatedAt": "2026-11-06T23:40:22+04:00",
   "transactions": [
     {
       "date": "2026-10-27",
@@ -64,12 +64,6 @@
       "time": "08:07",
       "shop": "Pablo Cafeteria",
       "amount": 11.5
-    },
-    {
-      "date": "2026-11-01",
-      "time": "11:55",
-      "shop": "Unique Tower Supermarket",
-      "amount": 9.25
     },
     {
       "date": "2026-11-01",
