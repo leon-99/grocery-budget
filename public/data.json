@@ -3,7 +3,7 @@
   "monthlyBudget": 1200,
   "month": "2026-11",
   "periodStart": "2026-10-27",
-  "updatedAt": "2026-11-08T14:01:56+04:00",
+  "updatedAt": "2026-11-08T16:05:38+04:00",
   "transactions": [
     {
       "date": "2026-10-27",
@@ -202,6 +202,12 @@
       "time": "13:48",
       "shop": "Quickerr by Choithrams",
       "amount": 7.5
+    },
+    {
+      "date": "2026-11-08",
+      "time": "15:45",
+      "shop": "West Zone Fresh",
+      "amount": 1.01
     }
   ]
 }
