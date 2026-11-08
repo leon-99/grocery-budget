@@ -3,7 +3,7 @@
   "monthlyBudget": 1200,
   "month": "2026-11",
   "periodStart": "2026-10-27",
-  "updatedAt": "2026-11-08T10:05:28+04:00",
+  "updatedAt": "2026-11-08T14:01:56+04:00",
   "transactions": [
     {
       "date": "2026-10-27",
@@ -196,6 +196,12 @@
       "time": "09:22",
       "shop": "Pablo Cafeteria",
       "amount": 5.0
+    },
+    {
+      "date": "2026-11-08",
+      "time": "13:48",
+      "shop": "Quickerr by Choithrams",
+      "amount": 7.5
     }
   ]
 }
