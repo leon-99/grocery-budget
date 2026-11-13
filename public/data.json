@@ -3,7 +3,7 @@
   "monthlyBudget": 1200,
   "month": "2026-11",
   "periodStart": "2026-10-27",
-  "updatedAt": "2026-11-13T19:14:57+04:00",
+  "updatedAt": "2026-11-13T23:20:00+04:00",
   "transactions": [
     {
       "date": "2026-10-27",
@@ -304,6 +304,12 @@
       "time": "18:55",
       "shop": "Food Day Spmkt",
       "amount": 7.5
+    },
+    {
+      "date": "2026-11-13",
+      "time": "23:08",
+      "shop": "Food Day Spmkt",
+      "amount": 13.5
     }
   ]
 }
