@@ -4,7 +4,7 @@
   "month": "2026-11",
   "periodStart": "2026-10-27",
   "periodEnd": "2026-11-30",
-  "updatedAt": "2026-11-19T10:25:00+04:00",
+  "updatedAt": "2026-11-20T11:12:00+04:00",
   "transactions": [
     {
       "date": "2026-10-27",
@@ -16,7 +16,7 @@
       "date": "2026-10-27",
       "time": "11:22",
       "shop": "Almond Ladies Tailoring",
-      "amount": 35
+      "amount": 35.0
     },
     {
       "date": "2026-10-27",
@@ -40,7 +40,7 @@
       "date": "2026-10-28",
       "time": "18:14",
       "shop": "Food Day",
-      "amount": 6
+      "amount": 6.0
     },
     {
       "date": "2026-10-29",
@@ -52,13 +52,13 @@
       "date": "2026-10-30",
       "time": "15:57",
       "shop": "Food Day",
-      "amount": 6
+      "amount": 6.0
     },
     {
       "date": "2026-10-31",
       "time": "21:00",
       "shop": "Cash groceries",
-      "amount": 19
+      "amount": 19.0
     },
     {
       "date": "2026-11-01",
@@ -82,7 +82,7 @@
       "date": "2026-11-01",
       "time": "17:52",
       "shop": "Food Day",
-      "amount": 9
+      "amount": 9.0
     },
     {
       "date": "2026-11-02",
@@ -106,13 +106,13 @@
       "date": "2026-11-04",
       "time": "08:40",
       "shop": "Prime Towers Supermarket",
-      "amount": 3
+      "amount": 3.0
     },
     {
       "date": "2026-11-04",
       "time": "11:30",
       "shop": "Almond Ladies Tailoring",
-      "amount": 33
+      "amount": 33.0
     },
     {
       "date": "2026-11-04",
@@ -124,7 +124,7 @@
       "date": "2026-11-05",
       "time": "08:49",
       "shop": "Prime Towers Supermarket",
-      "amount": 3
+      "amount": 3.0
     },
     {
       "date": "2026-11-05",
@@ -148,19 +148,19 @@
       "date": "2026-11-06",
       "time": "08:42",
       "shop": "Prime Towers Supermarket",
-      "amount": 4
+      "amount": 4.0
     },
     {
       "date": "2026-11-06",
       "time": "13:50",
       "shop": "Pablo Cafeteria",
-      "amount": 3
+      "amount": 3.0
     },
     {
       "date": "2026-11-07",
       "time": "08:44",
       "shop": "Prime Towers Supermarket",
-      "amount": 3
+      "amount": 3.0
     },
     {
       "date": "2026-11-07",
@@ -184,19 +184,19 @@
       "date": "2026-11-08",
       "time": "08:17",
       "shop": "Food Day",
-      "amount": 6
+      "amount": 6.0
     },
     {
       "date": "2026-11-08",
       "time": "09:09",
       "shop": "Pablo Cafeteria",
-      "amount": 5
+      "amount": 5.0
     },
     {
       "date": "2026-11-08",
       "time": "09:22",
       "shop": "Pablo Cafeteria",
-      "amount": 5
+      "amount": 5.0
     },
     {
       "date": "2026-11-08",
@@ -364,7 +364,7 @@
       "date": "2026-11-17",
       "time": "08:42",
       "shop": "Prime Towers Supermarket",
-      "amount": 3
+      "amount": 3.0
     },
     {
       "date": "2026-11-17",
@@ -376,7 +376,19 @@
       "date": "2026-11-17",
       "time": "14:40",
       "shop": "Unique Tower Supermarket",
-      "amount": 8
+      "amount": 8.0
+    },
+    {
+      "date": "2026-11-18",
+      "time": "09:27",
+      "shop": "ENOC Business Bay",
+      "amount": 9.0
+    },
+    {
+      "date": "2026-11-18",
+      "time": "13:02",
+      "shop": "KFC Sheikh Zayed Road",
+      "amount": 12.0
     },
     {
       "date": "2026-11-19",
