@@ -196,7 +196,9 @@ function escapeHtml(s: string): string {
 }
 
 async function loadJson<T>(path: string): Promise<T> {
-  const res = await fetch(`${base}${path}`);
+  const res = await fetch(`${base}${path}?t=${Date.now()}`, {
+    cache: "no-store",
+  });
   if (!res.ok) throw new Error(`Failed to load ${path}`);
   return res.json() as Promise<T>;
 }
