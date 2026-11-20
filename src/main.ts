@@ -17,7 +17,6 @@ interface Transaction {
 interface BudgetData {
   currency: string;
   monthlyBudget: number;
-  dailyBudget?: number;
   month: string;
   periodStart: string;
   updatedAt: string;
@@ -28,10 +27,6 @@ type View = "dashboard" | "stats";
 
 let cachedBudgetData: BudgetData | null = null;
 
-function getDailyBudget(data: BudgetData): number {
-  return data.dailyBudget ?? 40;
-}
-
 function todayYmdInDubai(): string {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Dubai",
@@ -41,13 +36,45 @@ function todayYmdInDubai(): string {
   }).format(new Date());
 }
 
-function maxYmd(a: string, b: string): string {
-  return a >= b ? a : b;
+function calendarMonthBoundsInDubai(): {
+  periodStart: string;
+  periodEnd: string;
+  daysInMonth: number;
+} {
+  const today = todayYmdInDubai();
+  const [y, m] = today.split("-").map(Number);
+  const mm = String(m).padStart(2, "0");
+  const periodStart = `${y}-${mm}-01`;
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const periodEnd = `${y}-${mm}-${String(daysInMonth).padStart(2, "0")}`;
+  return { periodStart, periodEnd, daysInMonth };
 }
 
-/** Stats-only: inclusive end date through later of Dubai today or latest transaction. */
-function statsPeriodEndDate(data: BudgetData): string {
-  return maxYmd(todayYmdInDubai(), latestTransactionDate(data));
+function getDailyBudget(data: BudgetData): number {
+  const { daysInMonth } = calendarMonthBoundsInDubai();
+  return data.monthlyBudget / daysInMonth;
+}
+
+function transactionsInCurrentMonth(data: BudgetData): Transaction[] {
+  const { periodStart, periodEnd } = calendarMonthBoundsInDubai();
+  return data.transactions.filter(
+    (t) => t.date >= periodStart && t.date <= periodEnd,
+  );
+}
+
+function formatPeriodRangeLabel(startYmd: string, endYmd: string): string {
+  const [sy, sm, sd] = startYmd.split("-").map(Number);
+  const [ey, em, ed] = endYmd.split("-").map(Number);
+  const start = new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "short",
+  }).format(new Date(sy, sm - 1, sd));
+  const end = new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(ey, em - 1, ed));
+  return `${start} – ${end}`;
 }
 
 function parseYmd(ymd: string): Date {
@@ -73,17 +100,9 @@ function enumerateDays(startYmd: string, endYmd: string): string[] {
   return days;
 }
 
-function latestTransactionDate(data: BudgetData): string {
-  if (data.transactions.length === 0) return data.periodStart;
-  return data.transactions.reduce(
-    (max, t) => (t.date > max ? t.date : max),
-    data.transactions[0].date,
-  );
-}
-
-function spendingByDate(data: BudgetData): Map<string, number> {
+function spendingByDate(transactions: Transaction[]): Map<string, number> {
   const map = new Map<string, number>();
-  for (const t of data.transactions) {
+  for (const t of transactions) {
     map.set(t.date, (map.get(t.date) ?? 0) + t.amount);
   }
   return map;
@@ -120,25 +139,6 @@ function formatUpdated(iso: string): string {
   } catch {
     return iso;
   }
-}
-
-function formatMonth(ym: string): string {
-  const [y, m] = ym.split("-").map(Number);
-  if (!y || !m) return ym;
-  return new Intl.DateTimeFormat(undefined, { month: "long", year: "numeric" }).format(
-    new Date(y, m - 1, 1),
-  );
-}
-
-function formatTxDayHeader(dateStr: string): string {
-  const [y, m, d] = dateStr.split("-").map(Number);
-  if (!y || !m || !d) return dateStr;
-  return new Intl.DateTimeFormat("en-GB", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(y, m - 1, d));
 }
 
 function formatTxGroupDayTitle(dateStr: string): string {
@@ -207,11 +207,12 @@ function renderViewTabs(active: View): string {
 }
 
 function renderStatsContent(data: BudgetData): string {
+  const { periodStart, periodEnd } = calendarMonthBoundsInDubai();
+  const monthTx = transactionsInCurrentMonth(data);
   const dailyBudget = getDailyBudget(data);
-  const endDate = statsPeriodEndDate(data);
-  const daysAsc = enumerateDays(data.periodStart, endDate);
+  const daysAsc = enumerateDays(periodStart, periodEnd);
   const daysDesc = [...daysAsc].reverse();
-  const byDate = spendingByDate(data);
+  const byDate = spendingByDate(monthTx);
 
   const tableRows = daysDesc
     .map((date) => {
@@ -242,14 +243,14 @@ function renderStatsContent(data: BudgetData): string {
           <span class="stats-summary-value">${formatMoney(-extraAvailable, data.currency)}</span>
         </div>`;
 
-  const monthlySpent = data.transactions.reduce((sum, t) => sum + t.amount, 0);
+  const monthlySpent = monthTx.reduce((sum, t) => sum + t.amount, 0);
   const monthlyClass =
     monthlySpent > data.monthlyBudget
       ? " stats-monthly-over"
       : monthlySpent < data.monthlyBudget
         ? " stats-monthly-under"
         : "";
-  const periodStartLabel = formatTxDayHeader(data.periodStart);
+  const periodLabel = formatPeriodRangeLabel(periodStart, periodEnd);
 
   return `
     <header class="dashboard-header">
@@ -257,7 +258,7 @@ function renderStatsContent(data: BudgetData): string {
       <p class="updated">Updated ${escapeHtml(formatUpdated(data.updatedAt))}</p>
     </header>
     ${renderViewTabs("stats")}
-    <p class="subtitle">Period from ${escapeHtml(periodStartLabel)} (${escapeHtml(data.periodStart)}) · ${formatMoney(dailyBudget, data.currency)}/day</p>
+    <p class="subtitle">${escapeHtml(periodLabel)} · ${formatMoney(dailyBudget, data.currency)}/day</p>
     <div class="card">
       <div class="stats-summary">
         <div class="stats-summary-row">
@@ -295,12 +296,15 @@ function renderStatsContent(data: BudgetData): string {
 }
 
 function renderDashboardContent(data: BudgetData): string {
-  const spent = data.transactions.reduce((sum, t) => sum + t.amount, 0);
+  const { periodStart, periodEnd } = calendarMonthBoundsInDubai();
+  const monthTx = transactionsInCurrentMonth(data);
+  const dailyBudget = getDailyBudget(data);
+  const spent = monthTx.reduce((sum, t) => sum + t.amount, 0);
   const left = data.monthlyBudget - spent;
   const pct = Math.min(100, (spent / data.monthlyBudget) * 100);
   const over = spent > data.monthlyBudget;
 
-  const sorted = [...data.transactions].sort((a, b) => {
+  const sorted = [...monthTx].sort((a, b) => {
     const byDate = b.date.localeCompare(a.date);
     return byDate !== 0 ? byDate : b.time.localeCompare(a.time);
   });
@@ -345,9 +349,11 @@ function renderDashboardContent(data: BudgetData): string {
     .join("");
 
   const transactionsBlock =
-    data.transactions.length === 0
+    monthTx.length === 0
       ? `<p class="tx-empty">No purchases yet</p>`
       : `<div class="tx-groups">${groupsHtml}</div>`;
+
+  const periodLabel = formatPeriodRangeLabel(periodStart, periodEnd);
 
   return `
     <header class="dashboard-header">
@@ -355,7 +361,7 @@ function renderDashboardContent(data: BudgetData): string {
       <p class="updated">Updated ${escapeHtml(formatUpdated(data.updatedAt))}</p>
     </header>
     ${renderViewTabs("dashboard")}
-    <p class="subtitle">${escapeHtml(formatMonth(data.month))} · since ${escapeHtml(data.periodStart)}</p>
+    <p class="subtitle">${escapeHtml(periodLabel)} · ${formatMoney(dailyBudget, data.currency)}/day</p>
     <div class="card">
       <div class="stats">
         <div>
