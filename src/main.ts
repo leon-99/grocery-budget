@@ -247,8 +247,9 @@ function renderStatsContent(data: BudgetData): string {
   const periodTx = transactionsInEffectivePeriod(data);
   const dailyBudget = getDailyBudget(data);
   const breakdownEnd = statsBreakdownEndYmd(periodEnd);
-  const daysAsc = enumerateDays(periodStart, breakdownEnd);
-  const daysDesc = [...daysAsc].reverse();
+  const breakdownDaysAsc = enumerateDays(periodStart, breakdownEnd);
+  const periodDaysAsc = enumerateDays(periodStart, periodEnd);
+  const daysDesc = [...breakdownDaysAsc].reverse();
   const byDate = spendingByDate(periodTx);
 
   const tableRows = daysDesc
@@ -265,9 +266,9 @@ function renderStatsContent(data: BudgetData): string {
     })
     .join("");
 
-  const daysCovered = daysAsc.length;
+  const daysCovered = periodDaysAsc.length;
   const totalAllowed = daysCovered * dailyBudget;
-  const actualSpent = daysAsc.reduce((sum, d) => sum + (byDate.get(d) ?? 0), 0);
+  const actualSpent = periodDaysAsc.reduce((sum, d) => sum + (byDate.get(d) ?? 0), 0);
   const extraAvailable = totalAllowed - actualSpent;
   const extraLine =
     extraAvailable >= 0
