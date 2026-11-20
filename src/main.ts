@@ -125,6 +125,42 @@ function statsBreakdownEndYmd(periodEnd: string): string {
   return minYmd(todayYmdInDubai(), periodEnd);
 }
 
+/** Calendar-month and custom-period stats: elapsed days from period start through Dubai today (inclusive). */
+function statsElapsedDaysAsc(periodStart: string, periodEnd: string): string[] {
+  const breakdownEnd = statsBreakdownEndYmd(periodEnd);
+  return enumerateDays(periodStart, breakdownEnd);
+}
+
+function statsPaceSummary(
+  elapsedDaysAsc: string[],
+  periodTx: Transaction[],
+  dailyBudget: number,
+  currency: string,
+): {
+  daysCovered: number;
+  totalAllowed: number;
+  actualSpent: number;
+  extraAvailable: number;
+  extraLine: string;
+} {
+  const byDate = spendingByDate(periodTx);
+  const daysCovered = elapsedDaysAsc.length;
+  const totalAllowed = daysCovered * dailyBudget;
+  const actualSpent = elapsedDaysAsc.reduce((sum, d) => sum + (byDate.get(d) ?? 0), 0);
+  const extraAvailable = totalAllowed - actualSpent;
+  const extraLine =
+    extraAvailable >= 0
+      ? `<div class="stats-summary-row stats-summary-row-under">
+          <span class="stats-summary-label">Extra available</span>
+          <span class="stats-summary-value">${formatMoney(extraAvailable, currency)}</span>
+        </div>`
+      : `<div class="stats-summary-row stats-summary-row-over">
+          <span class="stats-summary-label">Over by</span>
+          <span class="stats-summary-value">${formatMoney(-extraAvailable, currency)}</span>
+        </div>`;
+  return { daysCovered, totalAllowed, actualSpent, extraAvailable, extraLine };
+}
+
 function enumerateDays(startYmd: string, endYmd: string): string[] {
   const days: string[] = [];
   let cur = parseYmd(startYmd);
@@ -248,9 +284,8 @@ function renderStatsContent(data: BudgetData): string {
   const { periodStart, periodEnd } = effectivePeriod(data);
   const periodTx = transactionsInEffectivePeriod(data);
   const dailyBudget = getDailyBudget(data);
-  const breakdownEnd = statsBreakdownEndYmd(periodEnd);
-  const breakdownDaysAsc = enumerateDays(periodStart, breakdownEnd);
-  const daysDesc = [...breakdownDaysAsc].reverse();
+  const elapsedDaysAsc = statsElapsedDaysAsc(periodStart, periodEnd);
+  const daysDesc = [...elapsedDaysAsc].reverse();
   const byDate = spendingByDate(periodTx);
 
   const tableRows = daysDesc
@@ -267,20 +302,12 @@ function renderStatsContent(data: BudgetData): string {
     })
     .join("");
 
-  const daysCovered = breakdownDaysAsc.length;
-  const totalAllowed = daysCovered * dailyBudget;
-  const actualSpent = breakdownDaysAsc.reduce((sum, d) => sum + (byDate.get(d) ?? 0), 0);
-  const extraAvailable = totalAllowed - actualSpent;
-  const extraLine =
-    extraAvailable >= 0
-      ? `<div class="stats-summary-row stats-summary-row-under">
-          <span class="stats-summary-label">Extra available</span>
-          <span class="stats-summary-value">${formatMoney(extraAvailable, data.currency)}</span>
-        </div>`
-      : `<div class="stats-summary-row stats-summary-row-over">
-          <span class="stats-summary-label">Over by</span>
-          <span class="stats-summary-value">${formatMoney(-extraAvailable, data.currency)}</span>
-        </div>`;
+  const { daysCovered, totalAllowed, actualSpent, extraLine } = statsPaceSummary(
+    elapsedDaysAsc,
+    periodTx,
+    dailyBudget,
+    data.currency,
+  );
 
   const monthlySpent = periodTx.reduce((sum, t) => sum + t.amount, 0);
   const monthlyClass =
