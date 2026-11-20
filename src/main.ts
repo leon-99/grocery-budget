@@ -116,6 +116,15 @@ function formatYmd(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
+function minYmd(a: string, b: string): string {
+  return a <= b ? a : b;
+}
+
+/** Stats daily breakdown: through Dubai today, not beyond period end. */
+function statsBreakdownEndYmd(periodEnd: string): string {
+  return minYmd(todayYmdInDubai(), periodEnd);
+}
+
 function enumerateDays(startYmd: string, endYmd: string): string[] {
   const days: string[] = [];
   let cur = parseYmd(startYmd);
@@ -237,7 +246,8 @@ function renderStatsContent(data: BudgetData): string {
   const { periodStart, periodEnd } = effectivePeriod(data);
   const periodTx = transactionsInEffectivePeriod(data);
   const dailyBudget = getDailyBudget(data);
-  const daysAsc = enumerateDays(periodStart, periodEnd);
+  const breakdownEnd = statsBreakdownEndYmd(periodEnd);
+  const daysAsc = enumerateDays(periodStart, breakdownEnd);
   const daysDesc = [...daysAsc].reverse();
   const byDate = spendingByDate(periodTx);
 
