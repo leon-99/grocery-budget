@@ -250,7 +250,6 @@ function renderStatsContent(data: BudgetData): string {
   const dailyBudget = getDailyBudget(data);
   const breakdownEnd = statsBreakdownEndYmd(periodEnd);
   const breakdownDaysAsc = enumerateDays(periodStart, breakdownEnd);
-  const periodDaysAsc = enumerateDays(periodStart, periodEnd);
   const daysDesc = [...breakdownDaysAsc].reverse();
   const byDate = spendingByDate(periodTx);
 
@@ -268,9 +267,9 @@ function renderStatsContent(data: BudgetData): string {
     })
     .join("");
 
-  const daysCovered = periodDaysAsc.length;
+  const daysCovered = breakdownDaysAsc.length;
   const totalAllowed = daysCovered * dailyBudget;
-  const actualSpent = periodDaysAsc.reduce((sum, d) => sum + (byDate.get(d) ?? 0), 0);
+  const actualSpent = breakdownDaysAsc.reduce((sum, d) => sum + (byDate.get(d) ?? 0), 0);
   const extraAvailable = totalAllowed - actualSpent;
   const extraLine =
     extraAvailable >= 0
@@ -279,7 +278,7 @@ function renderStatsContent(data: BudgetData): string {
           <span class="stats-summary-value">${formatMoney(extraAvailable, data.currency)}</span>
         </div>`
       : `<div class="stats-summary-row stats-summary-row-over">
-          <span class="stats-summary-label">Overspent by</span>
+          <span class="stats-summary-label">Over by</span>
           <span class="stats-summary-value">${formatMoney(-extraAvailable, data.currency)}</span>
         </div>`;
 
