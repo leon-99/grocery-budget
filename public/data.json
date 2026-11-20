@@ -2,8 +2,7 @@
   "currency": "AED",
   "monthlyBudget": 1500,
   "month": "2026-11",
-  "periodStart": "2026-10-27",
-  "periodEnd": "2026-11-30",
+  "periodStart": "2026-11-01",
   "updatedAt": "2026-11-20T11:12:00+04:00",
   "transactions": [
     {
