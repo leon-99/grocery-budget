@@ -424,6 +424,12 @@
       "time": "18:15",
       "shop": "KFC",
       "amount": 12.0
+    },
+    {
+      "date": "2026-11-21",
+      "time": "19:27",
+      "shop": "Restaurant (cash)",
+      "amount": 15.0
     }
   ]
 }
