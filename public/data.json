@@ -394,6 +394,36 @@
       "time": "09:54",
       "shop": "Food Day",
       "amount": 5.5
+    },
+    {
+      "date": "2026-11-21",
+      "time": "18:46",
+      "shop": "Food Day Spmkt",
+      "amount": 40.0
+    },
+    {
+      "date": "2026-11-21",
+      "time": "18:46",
+      "shop": "New West Zone Supermarket",
+      "amount": 41.15
+    },
+    {
+      "date": "2026-11-21",
+      "time": "18:46",
+      "shop": "Almond Ladies Tailoring",
+      "amount": 40.0
+    },
+    {
+      "date": "2026-11-21",
+      "time": "18:46",
+      "shop": "Bahar Al Madina Supermarket",
+      "amount": 37.4
+    },
+    {
+      "date": "2026-11-21",
+      "time": "18:15",
+      "shop": "KFC",
+      "amount": 12.0
     }
   ]
 }
