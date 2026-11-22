@@ -430,6 +430,24 @@
       "time": "19:27",
       "shop": "Restaurant (cash)",
       "amount": 15.0
+    },
+    {
+      "date": "2026-11-22",
+      "time": "09:02",
+      "shop": "Unique Tower Supermarket",
+      "amount": 21.7
+    },
+    {
+      "date": "2026-11-22",
+      "time": "17:14",
+      "shop": "WNZ West Zone Supermarket",
+      "amount": 74.42
+    },
+    {
+      "date": "2026-11-22",
+      "time": "17:28",
+      "shop": "Families Mart",
+      "amount": 6.0
     }
   ]
 }
