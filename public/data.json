@@ -460,6 +460,12 @@
       "time": "18:07",
       "shop": "Food Day Spmkt",
       "amount": 7.37
+    },
+    {
+      "date": "2026-11-24",
+      "time": "08:44",
+      "shop": "Prime Towers Supermarket",
+      "amount": 3.0
     }
   ]
 }
