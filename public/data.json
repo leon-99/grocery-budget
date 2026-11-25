@@ -472,6 +472,18 @@
       "time": "19:11",
       "shop": "Food Day Spmkt",
       "amount": 11.5
+    },
+    {
+      "date": "2026-11-25",
+      "time": "12:00",
+      "shop": "WNZ West Zone Supermarket",
+      "amount": 64.69
+    },
+    {
+      "date": "2026-11-25",
+      "time": "12:00",
+      "shop": "Unique Tower Supermarket",
+      "amount": 24.5
     }
   ]
 }
