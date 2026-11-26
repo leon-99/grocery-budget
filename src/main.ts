@@ -38,7 +38,7 @@ interface BudgetData {
   transactions: Transaction[];
 }
 
-type View = "dashboard" | "stats";
+type View = "dashboard" | "personal" | "stats";
 
 let cachedBudgetData: BudgetData | null = null;
 
@@ -289,7 +289,8 @@ function renderGate(root: HTMLElement, config: AppConfig): void {
 function renderViewTabs(active: View): string {
   return `
     <nav class="view-tabs" role="tablist" aria-label="Views">
-      <button type="button" class="view-tab${active === "dashboard" ? " active" : ""}" role="tab" aria-selected="${active === "dashboard"}" data-view="dashboard">Dashboard</button>
+      <button type="button" class="view-tab${active === "dashboard" ? " active" : ""}" role="tab" aria-selected="${active === "dashboard"}" data-view="dashboard">Groceries</button>
+      <button type="button" class="view-tab${active === "personal" ? " active" : ""}" role="tab" aria-selected="${active === "personal"}" data-view="personal">Mom's own</button>
       <button type="button" class="view-tab${active === "stats" ? " active" : ""}" role="tab" aria-selected="${active === "stats"}" data-view="stats">Stats</button>
     </nav>`;
 }
@@ -375,7 +376,21 @@ function renderStatsContent(data: BudgetData): string {
   `;
 }
 
-function renderPersonalBalanceCard(personal: PersonalBalance, currency: string): string {
+function renderPersonalView(data: BudgetData): string {
+  if (!data.personal) {
+    return `
+      <header class="dashboard-header">
+        <h1>Grocery Budget</h1>
+        <p class="updated">Updated ${escapeHtml(formatUpdated(data.updatedAt))}</p>
+      </header>
+      ${renderViewTabs("personal")}
+      <div class="card">
+        <p class="tx-empty">Personal balance not configured</p>
+      </div>
+    `;
+  }
+
+  const personal = data.personal;
   const totalDeductions = personal.deductions.reduce((sum, d) => sum + d.amount, 0);
   const remaining = personal.starting - totalDeductions;
 
@@ -384,10 +399,10 @@ function renderPersonalBalanceCard(personal: PersonalBalance, currency: string):
     return byDate !== 0 ? byDate : b.time.localeCompare(a.time);
   });
 
-  const deductionsHtml = sorted.length > 0
+  const deductionsBlock = sorted.length > 0
     ? `
-      <div class="personal-deductions">
-        <h3 class="personal-deductions-title">Deductions</h3>
+      <div class="card">
+        <h2 class="section-title">Deductions</h2>
         <ul class="personal-deductions-list">
           ${sorted.map(d => `
             <li class="personal-deduction-item">
@@ -396,34 +411,38 @@ function renderPersonalBalanceCard(personal: PersonalBalance, currency: string):
                 <span class="tx-shop">${escapeHtml(d.shop)}</span>
                 <span class="personal-deduction-date">${escapeHtml(d.date)}</span>
               </div>
-              <div class="tx-amount">${formatMoney(d.amount, currency)}</div>
+              <div class="tx-amount">${formatMoney(d.amount, data.currency)}</div>
             </li>
           `).join('')}
         </ul>
       </div>
     `
-    : '';
+    : '<div class="card"><p class="tx-empty">No deductions yet</p></div>';
 
   return `
+    <header class="dashboard-header">
+      <h1>${escapeHtml(personal.label)}</h1>
+      <p class="updated">Updated ${escapeHtml(formatUpdated(data.updatedAt))}</p>
+    </header>
+    ${renderViewTabs("personal")}
     <div class="card personal-balance-card">
-      <h2 class="section-title">${escapeHtml(personal.label)} balance</h2>
       <div class="personal-balance-summary">
         <div class="personal-balance-row">
           <span class="personal-balance-label">Starting</span>
-          <span class="personal-balance-value">${formatMoney(personal.starting, currency)}</span>
+          <span class="personal-balance-value">${formatMoney(personal.starting, data.currency)}</span>
         </div>
         ${totalDeductions > 0 ? `
         <div class="personal-balance-row">
           <span class="personal-balance-label">Deductions</span>
-          <span class="personal-balance-value personal-deductions-total">−${formatMoney(totalDeductions, currency)}</span>
+          <span class="personal-balance-value personal-deductions-total">−${formatMoney(totalDeductions, data.currency)}</span>
         </div>` : ''}
         <div class="personal-balance-row personal-balance-remaining">
           <span class="personal-balance-label">Remaining</span>
-          <span class="personal-balance-value">${formatMoney(remaining, currency)}</span>
+          <span class="personal-balance-value">${formatMoney(remaining, data.currency)}</span>
         </div>
       </div>
-      ${deductionsHtml}
     </div>
+    ${deductionsBlock}
   `;
 }
 
@@ -487,10 +506,6 @@ function renderDashboardContent(data: BudgetData): string {
 
   const periodLabel = formatPeriodRangeLabel(periodStart, periodEnd);
 
-  const personalBalanceHtml = data.personal 
-    ? renderPersonalBalanceCard(data.personal, data.currency)
-    : '';
-
   return `
     <header class="dashboard-header">
       <h1>Grocery Budget</h1>
@@ -519,7 +534,6 @@ function renderDashboardContent(data: BudgetData): string {
         </div>
       </div>
     </div>
-    ${personalBalanceHtml}
     <div class="card">
       <h2 style="margin:0 0 0.75rem;font-size:1rem;font-weight:600">Transactions</h2>
       ${transactionsBlock}
@@ -541,7 +555,15 @@ async function renderApp(root: HTMLElement, view: View = "dashboard"): Promise<v
     cachedBudgetData = await loadJson<BudgetData>("data.json");
   }
   const data = cachedBudgetData;
-  root.innerHTML = view === "stats" ? renderStatsContent(data) : renderDashboardContent(data);
+  
+  if (view === "stats") {
+    root.innerHTML = renderStatsContent(data);
+  } else if (view === "personal") {
+    root.innerHTML = renderPersonalView(data);
+  } else {
+    root.innerHTML = renderDashboardContent(data);
+  }
+  
   attachViewTabHandlers(root, view);
 }
 

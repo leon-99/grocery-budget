@@ -309,7 +309,7 @@ button:active {
 
 .view-tabs {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 0.375rem;
   padding: 0.25rem;
   margin-bottom: 1rem;
@@ -497,21 +497,6 @@ button:active {
 
 .personal-deductions-total {
   color: #dc2626;
-}
-
-.personal-deductions {
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 2px solid rgba(217, 119, 6, 0.2);
-}
-
-.personal-deductions-title {
-  margin: 0 0 0.625rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #78350f;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .personal-deductions-list {
