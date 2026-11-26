@@ -484,6 +484,12 @@
       "time": "12:00",
       "shop": "Unique Tower Supermarket",
       "amount": 24.5
+    },
+    {
+      "date": "2026-11-26",
+      "time": "18:56",
+      "shop": "Prime Towers Supermarket",
+      "amount": 10.0
     }
   ]
 }
