@@ -380,7 +380,7 @@ function renderPersonalView(data: BudgetData): string {
   if (!data.personal) {
     return `
       <header class="dashboard-header">
-        <h1>Grocery Budget</h1>
+        <h1>Mom's own</h1>
         <p class="updated">Updated ${escapeHtml(formatUpdated(data.updatedAt))}</p>
       </header>
       ${renderViewTabs("personal")}
@@ -391,33 +391,59 @@ function renderPersonalView(data: BudgetData): string {
   }
 
   const personal = data.personal;
-  const totalDeductions = personal.deductions.reduce((sum, d) => sum + d.amount, 0);
-  const remaining = personal.starting - totalDeductions;
+  const used = personal.deductions.reduce((sum, d) => sum + d.amount, 0);
+  const left = personal.starting - used;
+  const pct = Math.min(100, (used / personal.starting) * 100);
+  const over = used > personal.starting;
 
   const sorted = [...personal.deductions].sort((a, b) => {
     const byDate = b.date.localeCompare(a.date);
     return byDate !== 0 ? byDate : b.time.localeCompare(a.time);
   });
 
-  const deductionsBlock = sorted.length > 0
-    ? `
-      <div class="card">
-        <h2 class="section-title">Deductions</h2>
-        <ul class="personal-deductions-list">
-          ${sorted.map(d => `
-            <li class="personal-deduction-item">
-              <div class="personal-deduction-main">
-                <span class="tx-time">${escapeHtml(d.time)}</span>
-                <span class="tx-shop">${escapeHtml(d.shop)}</span>
-                <span class="personal-deduction-date">${escapeHtml(d.date)}</span>
-              </div>
-              <div class="tx-amount">${formatMoney(d.amount, data.currency)}</div>
-            </li>
-          `).join('')}
-        </ul>
-      </div>
-    `
-    : '<div class="card"><p class="tx-empty">No deductions yet</p></div>';
+  const renderDeductionItem = (d: PersonalDeduction) => `
+      <li class="tx-item">
+        <div class="tx-item-main">
+          <span class="tx-time">${escapeHtml(d.time)}</span>
+          <span class="tx-shop">${escapeHtml(d.shop)}</span>
+        </div>
+        <div class="tx-amount">${formatMoney(d.amount, data.currency)}</div>
+      </li>`;
+
+  const groups: { date: string; items: PersonalDeduction[] }[] = [];
+  for (const d of sorted) {
+    const last = groups[groups.length - 1];
+    if (last && last.date === d.date) {
+      last.items.push(d);
+    } else {
+      groups.push({ date: d.date, items: [d] });
+    }
+  }
+
+  const groupsHtml = groups
+    .map((g) => {
+      const dayTotal = g.items.reduce((sum, d) => sum + d.amount, 0);
+      const count = g.items.length;
+      const countLabel = count === 1 ? "1 item" : `${count} items`;
+      const items = g.items.map(renderDeductionItem).join("");
+      return `
+    <section class="tx-group" aria-label="${escapeHtml(formatTxGroupDayTitle(g.date))}">
+      <header class="tx-group-head">
+        <h3 class="tx-group-title">${escapeHtml(formatTxGroupDayTitle(g.date))}</h3>
+        <div class="tx-group-meta">
+          <span class="tx-group-count">${countLabel}</span>
+          <span class="tx-group-total">Day total ${formatMoney(dayTotal, data.currency)}</span>
+        </div>
+      </header>
+      <ul class="tx-list">${items}</ul>
+    </section>`;
+    })
+    .join("");
+
+  const deductionsBlock =
+    sorted.length === 0
+      ? `<p class="tx-empty">No deductions yet</p>`
+      : `<div class="tx-groups">${groupsHtml}</div>`;
 
   return `
     <header class="dashboard-header">
@@ -425,24 +451,31 @@ function renderPersonalView(data: BudgetData): string {
       <p class="updated">Updated ${escapeHtml(formatUpdated(data.updatedAt))}</p>
     </header>
     ${renderViewTabs("personal")}
-    <div class="card personal-balance-card">
-      <div class="personal-balance-summary">
-        <div class="personal-balance-row">
-          <span class="personal-balance-label">Starting</span>
-          <span class="personal-balance-value">${formatMoney(personal.starting, data.currency)}</span>
+    <div class="card">
+      <div class="stats">
+        <div>
+          <div class="stat-label">Used</div>
+          <div class="stat-value">${formatMoney(used, data.currency)}</div>
         </div>
-        ${totalDeductions > 0 ? `
-        <div class="personal-balance-row">
-          <span class="personal-balance-label">Deductions</span>
-          <span class="personal-balance-value personal-deductions-total">−${formatMoney(totalDeductions, data.currency)}</span>
-        </div>` : ''}
-        <div class="personal-balance-row personal-balance-remaining">
-          <span class="personal-balance-label">Remaining</span>
-          <span class="personal-balance-value">${formatMoney(remaining, data.currency)}</span>
+        <div>
+          <div class="stat-label">Left</div>
+          <div class="stat-value left">${formatMoney(left, data.currency)}</div>
+        </div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span>${pct.toFixed(0)}% used</span>
+          <span>${formatMoney(personal.starting, data.currency)} total</span>
+        </div>
+        <div class="progress-bar" role="progressbar" aria-valuenow="${pct.toFixed(0)}" aria-valuemin="0" aria-valuemax="100">
+          <div class="progress-fill${over ? " over" : ""}" style="width: ${pct}%"></div>
         </div>
       </div>
     </div>
-    ${deductionsBlock}
+    <div class="card">
+      <h2 style="margin:0 0 0.75rem;font-size:1rem;font-weight:600">Deductions</h2>
+      ${deductionsBlock}
+    </div>
   `;
 }
 
