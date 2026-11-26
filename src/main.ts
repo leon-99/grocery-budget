@@ -14,6 +14,19 @@ interface Transaction {
   amount: number;
 }
 
+interface PersonalDeduction {
+  date: string;
+  time: string;
+  shop: string;
+  amount: number;
+}
+
+interface PersonalBalance {
+  label: string;
+  starting: number;
+  deductions: PersonalDeduction[];
+}
+
 interface BudgetData {
   currency: string;
   monthlyBudget: number;
@@ -21,6 +34,7 @@ interface BudgetData {
   periodStart: string;
   periodEnd?: string;
   updatedAt: string;
+  personal?: PersonalBalance;
   transactions: Transaction[];
 }
 
@@ -361,6 +375,58 @@ function renderStatsContent(data: BudgetData): string {
   `;
 }
 
+function renderPersonalBalanceCard(personal: PersonalBalance, currency: string): string {
+  const totalDeductions = personal.deductions.reduce((sum, d) => sum + d.amount, 0);
+  const remaining = personal.starting - totalDeductions;
+
+  const sorted = [...personal.deductions].sort((a, b) => {
+    const byDate = b.date.localeCompare(a.date);
+    return byDate !== 0 ? byDate : b.time.localeCompare(a.time);
+  });
+
+  const deductionsHtml = sorted.length > 0
+    ? `
+      <div class="personal-deductions">
+        <h3 class="personal-deductions-title">Deductions</h3>
+        <ul class="personal-deductions-list">
+          ${sorted.map(d => `
+            <li class="personal-deduction-item">
+              <div class="personal-deduction-main">
+                <span class="tx-time">${escapeHtml(d.time)}</span>
+                <span class="tx-shop">${escapeHtml(d.shop)}</span>
+                <span class="personal-deduction-date">${escapeHtml(d.date)}</span>
+              </div>
+              <div class="tx-amount">${formatMoney(d.amount, currency)}</div>
+            </li>
+          `).join('')}
+        </ul>
+      </div>
+    `
+    : '';
+
+  return `
+    <div class="card personal-balance-card">
+      <h2 class="section-title">${escapeHtml(personal.label)} balance</h2>
+      <div class="personal-balance-summary">
+        <div class="personal-balance-row">
+          <span class="personal-balance-label">Starting</span>
+          <span class="personal-balance-value">${formatMoney(personal.starting, currency)}</span>
+        </div>
+        ${totalDeductions > 0 ? `
+        <div class="personal-balance-row">
+          <span class="personal-balance-label">Deductions</span>
+          <span class="personal-balance-value personal-deductions-total">−${formatMoney(totalDeductions, currency)}</span>
+        </div>` : ''}
+        <div class="personal-balance-row personal-balance-remaining">
+          <span class="personal-balance-label">Remaining</span>
+          <span class="personal-balance-value">${formatMoney(remaining, currency)}</span>
+        </div>
+      </div>
+      ${deductionsHtml}
+    </div>
+  `;
+}
+
 function renderDashboardContent(data: BudgetData): string {
   const { periodStart, periodEnd } = effectivePeriod(data);
   const periodTx = transactionsInEffectivePeriod(data);
@@ -421,6 +487,10 @@ function renderDashboardContent(data: BudgetData): string {
 
   const periodLabel = formatPeriodRangeLabel(periodStart, periodEnd);
 
+  const personalBalanceHtml = data.personal 
+    ? renderPersonalBalanceCard(data.personal, data.currency)
+    : '';
+
   return `
     <header class="dashboard-header">
       <h1>Grocery Budget</h1>
@@ -449,6 +519,7 @@ function renderDashboardContent(data: BudgetData): string {
         </div>
       </div>
     </div>
+    ${personalBalanceHtml}
     <div class="card">
       <h2 style="margin:0 0 0.75rem;font-size:1rem;font-weight:600">Transactions</h2>
       ${transactionsBlock}

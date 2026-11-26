@@ -4,6 +4,11 @@
   "month": "2026-11",
   "periodStart": "2026-11-01",
   "updatedAt": "2026-11-20T11:12:00+04:00",
+  "personal": {
+    "label": "Mom's own",
+    "starting": 150.00,
+    "deductions": []
+  },
   "transactions": [
     {
       "date": "2026-10-27",
