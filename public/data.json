@@ -4,10 +4,9 @@
   "month": "2026-11",
   "periodStart": "2026-11-01",
   "updatedAt": "2026-11-27T09:34:00+04:00",
-  "personal": {
-    "label": "Mom's own",
-    "starting": 150.00,
-    "deductions": []
+  "budget": {
+    "monthlyAllowance": 1500,
+    "anchorMonth": "2026-11"
   },
   "transactions": [
     {

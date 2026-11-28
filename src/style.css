@@ -88,6 +88,11 @@ h1 {
   color: var(--accent-dark);
 }
 
+.stat-value.over,
+.opening-line.over {
+  color: var(--danger);
+}
+
 .progress-wrap {
   margin-bottom: 0.5rem;
 }
@@ -307,9 +312,22 @@ button:active {
   letter-spacing: 0.01em;
 }
 
+.opening-line {
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.opening-note {
+  margin: -0.5rem 0 1rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
 .view-tabs {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 0.375rem;
   padding: 0.25rem;
   margin-bottom: 1rem;
