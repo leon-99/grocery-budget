@@ -518,6 +518,12 @@
       "time": "12:00",
       "shop": "Food Day Spmkt",
       "amount": 69.0
+    },
+    {
+      "date": "2026-11-28",
+      "time": "20:36",
+      "shop": "New West Zone Supermarket",
+      "amount": 135.93
     }
   ]
 }
